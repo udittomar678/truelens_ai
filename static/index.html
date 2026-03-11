@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TrueLens AI — Forensic Image Intelligence</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:#080b0f; --surface:#0d1117; --border:#1c2333; --accent:#00ffe5;
+      --accent2:#ff3f6c; --warn:#ffb800; --text:#c9d1d9; --muted:#484f58;
+      --low:#2ea043; --medium:#d29922; --high:#f85149;
+      --font-mono:'Share Tech Mono',monospace; --font-main:'Syne',sans-serif;
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html { scroll-behavior:smooth; }
+    body { background:var(--bg); color:var(--text); font-family:var(--font-main); min-height:100vh; overflow-x:hidden; }
+    body::before {
+      content:''; position:fixed; inset:0;
+      background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,229,0.015) 2px,rgba(0,255,229,0.015) 4px);
+      pointer-events:none; z-index:999;
+    }
+    body::after {
+      content:''; position:fixed; inset:0;
+      background-image:linear-gradient(rgba(0,255,229,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,229,0.03) 1px,transparent 1px);
+      background-size:40px 40px; pointer-events:none; z-index:0;
+    }
+    header { position:relative; z-index:10; padding:2rem 3rem; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); background:rgba(8,11,15,0.9); backdrop-filter:blur(12px); }
+    .logo { display:flex; align-items:center; gap:0.75rem; }
+    .logo-icon { width:36px; height:36px; border:2px solid var(--accent); border-radius:4px; display:flex; align-items:center; justify-content:center; animation:pulse-border 2s ease-in-out infinite; }
+    .logo-icon::before { content:''; width:14px; height:14px; border-radius:50%; background:var(--accent); box-shadow:0 0 12px var(--accent); }
+    @keyframes pulse-border { 0%,100%{box-shadow:0 0 0 0 rgba(0,255,229,0.4)} 50%{box-shadow:0 0 0 6px rgba(0,255,229,0)} }
+    .logo-text { font-size:1.25rem; font-weight:800; letter-spacing:0.05em; color:#fff; }
+    .logo-text span { color:var(--accent); }
+    .header-badge { font-family:var(--font-mono); font-size:0.7rem; color:var(--accent); border:1px solid rgba(0,255,229,0.3); padding:0.25rem 0.75rem; border-radius:2px; letter-spacing:0.1em; }
+    main { position:relative; z-index:10; max-width:1100px; margin:0 auto; padding:3rem 2rem; }
+    .hero { text-align:center; margin-bottom:3.5rem; animation:fadeUp 0.6s ease both; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .hero-tag { font-family:var(--font-mono); font-size:0.75rem; color:var(--accent); letter-spacing:0.2em; text-transform:uppercase; margin-bottom:1rem; display:block; }
+    .hero h1 { font-size:clamp(2rem,5vw,3.5rem); font-weight:800; color:#fff; line-height:1.1; margin-bottom:1rem; }
+    .hero h1 em { font-style:normal; color:var(--accent); text-shadow:0 0 30px rgba(0,255,229,0.4); }
+    .hero p { font-size:1.05rem; color:var(--muted); max-width:520px; margin:0 auto; line-height:1.7; }
+    .upload-section { animation:fadeUp 0.6s 0.15s ease both; }
+    label.upload-zone {
+      display:block; border:2px dashed var(--border); border-radius:8px; padding:3.5rem 2rem;
+      text-align:center; cursor:pointer; transition:all 0.3s ease;
+      position:relative; overflow:hidden; background:var(--surface);
+    }
+    label.upload-zone::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at center,rgba(0,255,229,0.04) 0%,transparent 70%); opacity:0; transition:opacity 0.3s; }
+    label.upload-zone:hover, label.upload-zone.dragging { border-color:var(--accent); background:rgba(0,255,229,0.03); }
+    label.upload-zone:hover::before, label.upload-zone.dragging::before { opacity:1; }
+    .upload-icon { width:60px; height:60px; margin:0 auto 1.25rem; border:2px solid var(--border); border-radius:50%; display:flex; align-items:center; justify-content:center; transition:all 0.3s; }
+    label.upload-zone:hover .upload-icon { border-color:var(--accent); box-shadow:0 0 20px rgba(0,255,229,0.2); }
+    .upload-icon svg { width:26px; height:26px; stroke:var(--muted); transition:stroke 0.3s; }
+    label.upload-zone:hover .upload-icon svg { stroke:var(--accent); }
+    .upload-title { font-size:1.1rem; font-weight:700; color:#fff; margin-bottom:0.5rem; }
+    .upload-sub { font-family:var(--font-mono); font-size:0.75rem; color:var(--muted); margin-bottom:1.5rem; }
+    .upload-btn { display:inline-flex; align-items:center; gap:0.5rem; background:var(--accent); color:#000; font-family:var(--font-main); font-weight:700; font-size:0.875rem; padding:0.65rem 1.75rem; border-radius:4px; letter-spacing:0.05em; pointer-events:none; }
+    label.upload-zone:hover .upload-btn { background:#fff; box-shadow:0 0 20px rgba(0,255,229,0.4); }
+    #file-input { display:none; }
+    .preview-container { display:none; margin-top:1.5rem; border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--surface); }
+    .preview-header { padding:0.75rem 1.25rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; font-family:var(--font-mono); font-size:0.75rem; color:var(--muted); }
+    .preview-header span { color:var(--accent); }
+    .preview-body { display:flex; }
+    .preview-image-wrap { flex:0 0 280px; position:relative; overflow:hidden; }
+    .preview-image-wrap img { width:100%; height:220px; object-fit:cover; display:block; }
+    .scan-line { position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--accent),transparent); box-shadow:0 0 8px var(--accent); animation:scan 2s linear infinite; display:none; }
+    @keyframes scan { 0%{top:0;opacity:1} 90%{top:100%;opacity:1} 100%{top:100%;opacity:0} }
+    .preview-meta { flex:1; padding:1.25rem 1.5rem; display:flex; flex-direction:column; gap:0.6rem; }
+    .meta-row { display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.75rem; }
+    .meta-label { color:var(--muted); } .meta-value { color:var(--text); }
+    .analyse-btn { width:100%; margin-top:1.25rem; padding:1rem; background:transparent; border:1px solid var(--accent); color:var(--accent); font-family:var(--font-mono); font-size:0.9rem; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; border-radius:4px; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:0.75rem; }
+    .analyse-btn:hover { background:var(--accent); color:#000; box-shadow:0 0 25px rgba(0,255,229,0.3); }
+    .loading-state { display:none; text-align:center; padding:3rem; border:1px solid var(--border); border-radius:8px; background:var(--surface); margin-top:1.5rem; }
+    .loading-spinner { width:50px; height:50px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 1.25rem; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    .loading-text { font-family:var(--font-mono); font-size:0.8rem; color:var(--accent); letter-spacing:0.1em; }
+    .loading-steps { margin-top:1rem; display:flex; flex-direction:column; gap:0.4rem; }
+    .loading-step { font-family:var(--font-mono); font-size:0.7rem; color:var(--muted); display:flex; align-items:center; gap:0.5rem; justify-content:center; opacity:0; animation:stepReveal 0.4s ease forwards; }
+    .loading-step::before { content:'›'; }
+    @keyframes stepReveal { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
+    .results { display:none; margin-top:1.5rem; animation:fadeUp 0.5s ease both; }
+    .result-header { display:flex; align-items:center; justify-content:space-between; padding:1rem 1.5rem; border-radius:8px 8px 0 0; border:1px solid var(--border); border-bottom:none; background:var(--surface); }
+    .result-title { font-family:var(--font-mono); font-size:0.75rem; color:var(--muted); letter-spacing:0.1em; }
+    .result-timestamp { font-family:var(--font-mono); font-size:0.7rem; color:var(--muted); }
+    .verdict-card { border:1px solid var(--border); border-bottom:none; background:var(--surface); padding:2rem 1.5rem; display:flex; align-items:center; gap:2rem; }
+    .verdict-gauge { flex:0 0 140px; position:relative; }
+    .gauge-svg { width:140px; height:140px; }
+    .gauge-bg { fill:none; stroke:var(--border); stroke-width:8; }
+    .gauge-fill { fill:none; stroke-width:8; stroke-linecap:round; transform:rotate(-220deg); transform-origin:center; transition:stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1),stroke 0.5s ease; }
+    .gauge-label { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .gauge-pct { font-size:1.75rem; font-weight:800; color:#fff; line-height:1; }
+    .gauge-sub { font-family:var(--font-mono); font-size:0.6rem; color:var(--muted); letter-spacing:0.1em; margin-top:2px; }
+    .verdict-info { flex:1; }
+    .verdict-label { font-size:0.75rem; font-family:var(--font-mono); color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.4rem; }
+    .verdict-main { font-size:2rem; font-weight:800; line-height:1; margin-bottom:0.75rem; }
+    .risk-badge { display:inline-flex; align-items:center; gap:0.4rem; padding:0.3rem 0.9rem; border-radius:2px; font-family:var(--font-mono); font-size:0.75rem; font-weight:700; letter-spacing:0.1em; }
+    .risk-badge.LOW    { background:rgba(46,160,67,0.15);  color:var(--low);    border:1px solid var(--low); }
+    .risk-badge.MEDIUM { background:rgba(210,153,34,0.15); color:var(--medium); border:1px solid var(--medium); }
+    .risk-badge.HIGH   { background:rgba(248,81,73,0.15);  color:var(--high);   border:1px solid var(--high); }
+    .risk-badge::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; animation:blink 1.5s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .scores-grid { display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--border); border-bottom:none; }
+    .score-cell { padding:1.25rem; border-right:1px solid var(--border); background:var(--surface); }
+    .score-cell:last-child { border-right:none; }
+    .score-label { font-family:var(--font-mono); font-size:0.65rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.5rem; }
+    .score-value { font-size:1.5rem; font-weight:800; color:#fff; margin-bottom:0.4rem; }
+    .score-bar-track { height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+    .score-bar-fill { height:100%; border-radius:2px; transition:width 1s cubic-bezier(0.4,0,0.2,1); width:0%; }
+    .signals-grid { display:grid; grid-template-columns:1fr 1fr; border:1px solid var(--border); border-bottom:none; }
+    .signal-panel { padding:1.25rem; background:var(--surface); border-right:1px solid var(--border); }
+    .signal-panel:last-child { border-right:none; }
+    .signal-title { font-family:var(--font-mono); font-size:0.7rem; color:var(--accent); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; }
+    .signal-title::before { content:''; width:6px; height:6px; background:var(--accent); border-radius:50%; box-shadow:0 0 6px var(--accent); }
+    .signal-rows { display:flex; flex-direction:column; gap:0.6rem; }
+    .signal-row { display:flex; justify-content:space-between; align-items:center; font-family:var(--font-mono); font-size:0.72rem; }
+    .signal-key { color:var(--muted); }
+    .signal-val { color:var(--text); max-width:160px; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .signal-val.ok { color:var(--low); } .signal-val.warn { color:var(--warn); } .signal-val.danger { color:var(--high); }
+    .flags-list { margin-top:0.75rem; display:flex; flex-wrap:wrap; gap:0.4rem; }
+    .flag-chip { font-family:var(--font-mono); font-size:0.62rem; padding:0.2rem 0.5rem; background:rgba(248,81,73,0.1); border:1px solid rgba(248,81,73,0.3); color:var(--high); border-radius:2px; letter-spacing:0.05em; }
+    /* ── Grad-CAM Section ── */
+    .gradcam-section { border:1px solid var(--border); border-top:none; background:var(--surface); padding:1.5rem; }
+    .gradcam-title { font-family:var(--font-mono); font-size:0.7rem; color:var(--accent); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; }
+    .gradcam-title::before { content:''; width:6px; height:6px; background:var(--accent); border-radius:50%; box-shadow:0 0 6px var(--accent); }
+    .gradcam-images { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .gradcam-img-wrap { display:flex; flex-direction:column; gap:0.5rem; }
+    .gradcam-img-label { font-family:var(--font-mono); font-size:0.65rem; color:var(--muted); letter-spacing:0.1em; }
+    .gradcam-img-wrap img { width:100%; border-radius:4px; border:1px solid var(--border); display:block; }
+    .gradcam-explanation { margin-top:1rem; padding:0.75rem 1rem; background:rgba(0,255,229,0.05); border:1px solid rgba(0,255,229,0.15); border-radius:4px; font-family:var(--font-mono); font-size:0.72rem; color:var(--text); line-height:1.6; }
+    .gradcam-legend { margin-top:0.75rem; display:flex; gap:1rem; align-items:center; font-family:var(--font-mono); font-size:0.65rem; color:var(--muted); }
+    .legend-item { display:flex; align-items:center; gap:0.35rem; }
+    .legend-dot { width:10px; height:10px; border-radius:2px; }
+    .gradcam-loading { text-align:center; padding:2rem; font-family:var(--font-mono); font-size:0.75rem; color:var(--muted); }
+    .result-footer { border:1px solid var(--border); border-radius:0 0 8px 8px; background:var(--surface); padding:0.85rem 1.5rem; display:flex; align-items:center; justify-content:space-between; }
+    .footer-meta { font-family:var(--font-mono); font-size:0.68rem; color:var(--muted); display:flex; gap:2rem; }
+    .footer-meta span { color:var(--text); }
+    .reset-btn { font-family:var(--font-mono); font-size:0.7rem; color:var(--muted); background:none; border:1px solid var(--border); padding:0.35rem 0.85rem; border-radius:2px; cursor:pointer; letter-spacing:0.1em; transition:all 0.2s; }
+    .reset-btn:hover { color:var(--accent); border-color:var(--accent); }
+    .error-state { display:none; margin-top:1.5rem; padding:1.25rem 1.5rem; border:1px solid rgba(248,81,73,0.4); border-radius:8px; background:rgba(248,81,73,0.06); }
+    .error-title { font-family:var(--font-mono); font-size:0.75rem; color:var(--high); letter-spacing:0.1em; margin-bottom:0.4rem; }
+    .error-msg { font-family:var(--font-mono); font-size:0.72rem; color:var(--muted); }
+    .how-section { margin-top:4rem; animation:fadeUp 0.6s 0.3s ease both; }
+    .section-title { font-family:var(--font-mono); font-size:0.7rem; color:var(--accent); letter-spacing:0.2em; text-transform:uppercase; margin-bottom:1.5rem; }
+    .steps-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+    .step-card { background:var(--surface); padding:1.5rem 1.25rem; }
+    .step-num { font-family:var(--font-mono); font-size:0.65rem; color:var(--accent); letter-spacing:0.1em; margin-bottom:0.75rem; }
+    .step-name { font-size:0.95rem; font-weight:700; color:#fff; margin-bottom:0.4rem; }
+    .step-desc { font-size:0.78rem; color:var(--muted); line-height:1.5; }
+    @media(max-width:768px) { header{padding:1.25rem} main{padding:2rem 1.25rem} .verdict-card{flex-direction:column;align-items:flex-start} .scores-grid{grid-template-columns:1fr 1fr} .signals-grid{grid-template-columns:1fr} .steps-grid{grid-template-columns:1fr 1fr} .preview-body{flex-direction:column} .preview-image-wrap{flex:none} .gradcam-images{grid-template-columns:1fr} }
+    @media(max-width:480px) { .steps-grid{grid-template-columns:1fr} .scores-grid{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-icon"></div>
+    <span class="logo-text">True<span>Lens</span> AI</span>
+  </div>
+  <div class="header-badge">FORENSIC INTELLIGENCE v1.0</div>
+</header>
+<main>
+  <div class="hero">
+    <span class="hero-tag">// AI Detection System</span>
+    <h1>Is this image <em>real</em><br>or AI-generated?</h1>
+    <p>Upload any image. TrueLens runs a multi-signal forensic analysis — CNN inference, frequency spectrum, and metadata — to give you a verdict in seconds.</p>
+  </div>
+  <div class="upload-section">
+    <label class="upload-zone" id="drop-zone" for="file-input">
+      <div class="upload-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <div class="upload-title">Click anywhere here to choose an image</div>
+      <div class="upload-sub">JPG · PNG · WEBP · BMP — max 20 MB</div>
+      <div class="upload-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        Choose File
+      </div>
+    </label>
+    <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp,image/bmp"/>
+    <div class="preview-container" id="preview-container">
+      <div class="preview-header">
+        <span>SELECTED FILE — <span id="preview-filename">—</span></span>
+        <span id="preview-size">—</span>
+      </div>
+      <div class="preview-body">
+        <div class="preview-image-wrap">
+          <img id="preview-img" src="" alt="Preview"/>
+          <div class="scan-line" id="scan-line"></div>
+        </div>
+        <div class="preview-meta">
+          <div class="meta-row"><span class="meta-label">TYPE</span><span class="meta-value" id="meta-type">—</span></div>
+          <div class="meta-row"><span class="meta-label">SIZE</span><span class="meta-value" id="meta-size">—</span></div>
+          <div class="meta-row"><span class="meta-label">STATUS</span><span class="meta-value" style="color:var(--low)">READY FOR ANALYSIS</span></div>
+        </div>
+      </div>
+      <div style="padding:1rem">
+        <button class="analyse-btn" id="analyse-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          RUN FORENSIC ANALYSIS
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="loading-state" id="loading-state">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">ANALYSING IMAGE...</div>
+    <div class="loading-steps" id="loading-steps"></div>
+  </div>
+  <div class="error-state" id="error-state">
+    <div class="error-title">// ANALYSIS FAILED</div>
+    <div class="error-msg" id="error-msg">An unexpected error occurred.</div>
+  </div>
+  <div class="results" id="results">
+    <div class="result-header">
+      <div class="result-title">// FORENSIC ANALYSIS REPORT</div>
+      <div class="result-timestamp" id="result-timestamp">—</div>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-gauge">
+        <svg class="gauge-svg" viewBox="0 0 140 140">
+          <circle class="gauge-bg" cx="70" cy="70" r="54" stroke-dasharray="270" stroke-dashoffset="0" transform="rotate(-220 70 70)"/>
+          <circle class="gauge-fill" id="gauge-fill" cx="70" cy="70" r="54" stroke-dasharray="270" stroke-dashoffset="270"/>
+        </svg>
+        <div class="gauge-label">
+          <div class="gauge-pct" id="gauge-pct">0%</div>
+          <div class="gauge-sub">AI PROB</div>
+        </div>
+      </div>
+      <div class="verdict-info">
+        <div class="verdict-label">VERDICT</div>
+        <div class="verdict-main" id="verdict-main">—</div>
+        <div id="risk-badge-wrap"></div>
+        <div style="margin-top:0.75rem;font-size:0.82rem;color:var(--muted);line-height:1.6" id="verdict-desc"></div>
+      </div>
+    </div>
+    <div class="scores-grid">
+      <div class="score-cell"><div class="score-label">CNN MODEL SCORE</div><div class="score-value" id="score-model">—</div><div class="score-bar-track"><div class="score-bar-fill" id="bar-model" style="background:var(--accent)"></div></div></div>
+      <div class="score-cell"><div class="score-label">METADATA SCORE</div><div class="score-value" id="score-meta">—</div><div class="score-bar-track"><div class="score-bar-fill" id="bar-meta" style="background:var(--warn)"></div></div></div>
+      <div class="score-cell"><div class="score-label">FUSED SCORE</div><div class="score-value" id="score-fused">—</div><div class="score-bar-track"><div class="score-bar-fill" id="bar-fused" style="background:var(--accent2)"></div></div></div>
+    </div>
+    <div class="signals-grid">
+      <div class="signal-panel"><div class="signal-title">EXIF Metadata</div><div class="signal-rows" id="exif-rows"></div><div class="flags-list" id="exif-flags"></div></div>
+      <div class="signal-panel"><div class="signal-title">Frequency Spectrum</div><div class="signal-rows" id="freq-rows"></div></div>
+    </div>
+    <!-- Grad-CAM Section -->
+    <div class="gradcam-section" id="gradcam-section" style="display:none">
+      <div class="gradcam-title">GRAD-CAM Forensic Heatmap</div>
+      <div id="gradcam-loading" class="gradcam-loading">⟳ Generating heatmap...</div>
+      <div id="gradcam-content" style="display:none">
+        <div class="gradcam-images">
+          <div class="gradcam-img-wrap">
+            <div class="gradcam-img-label">ORIGINAL IMAGE</div>
+            <img id="gradcam-original" src="" alt="Original"/>
+          </div>
+          <div class="gradcam-img-wrap">
+            <div class="gradcam-img-label">AI DETECTION HEATMAP</div>
+            <img id="gradcam-overlay" src="" alt="Heatmap"/>
+          </div>
+        </div>
+        <div class="gradcam-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#ff0000"></div> High AI signal</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#ffff00"></div> Medium signal</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#00ff00"></div> Natural/Real</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#0000ff"></div> No signal</div>
+        </div>
+        <div class="gradcam-explanation" id="gradcam-explanation"></div>
+      </div>
+    </div>
+    <div class="result-footer">
+      <div class="footer-meta">
+        <div>PROCESSING TIME <span id="proc-time">—</span></div>
+        <div>MODEL VERSION <span id="model-ver">—</span></div>
+        <div>FILENAME <span id="footer-filename">—</span></div>
+      </div>
+      <button class="reset-btn" id="reset-btn">↺ NEW ANALYSIS</button>
+    </div>
+  </div>
+  <div class="how-section">
+    <div class="section-title">// HOW IT WORKS</div>
+    <div class="steps-grid">
+      <div class="step-card"><div class="step-num">STEP 01</div><div class="step-name">CNN Inference</div><div class="step-desc">EfficientNet-B3 analyses pixels and textures. A parallel FFT branch detects invisible frequency artefacts left by AI generators.</div></div>
+      <div class="step-card"><div class="step-num">STEP 02</div><div class="step-name">EXIF Forensics</div><div class="step-desc">Real photos contain camera metadata. AI images typically have none. Missing or suspicious EXIF is a strong signal.</div></div>
+      <div class="step-card"><div class="step-num">STEP 03</div><div class="step-name">Spectrum Analysis</div><div class="step-desc">GAN generators leave grid-like patterns in frequency space. Diffusion models show abnormal high-frequency energy.</div></div>
+      <div class="step-card"><div class="step-num">STEP 04</div><div class="step-name">Fusion Verdict</div><div class="step-desc">All signals are weighted and fused. CNN carries 65%, EXIF 20%, FFT 15%. Risk is classified LOW, MEDIUM, or HIGH.</div></div>
+    </div>
+  </div>
+</main>
+<script>
+  const API_BASE = 'http://localhost:8000';
+  let selectedFile = null;
+  const fileInput = document.getElementById('file-input');
+  const dropZone  = document.getElementById('drop-zone');
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragging'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragging'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('dragging');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) handleFile(file);
+  });
+
+  fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) handleFile(e.target.files[0]);
+  });
+
+  document.getElementById('analyse-btn').addEventListener('click', runAnalysis);
+  document.getElementById('reset-btn').addEventListener('click', resetUI);
+
+  function handleFile(file) {
+    selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      document.getElementById('preview-img').src = ev.target.result;
+      document.getElementById('preview-filename').textContent = file.name;
+      document.getElementById('preview-size').textContent = formatBytes(file.size);
+      document.getElementById('meta-type').textContent = file.type.split('/')[1].toUpperCase();
+      document.getElementById('meta-size').textContent = formatBytes(file.size);
+      document.getElementById('preview-container').style.display = 'block';
+      hideAll();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function formatBytes(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+    return (b/1048576).toFixed(1) + ' MB';
+  }
+
+  async function runAnalysis() {
+    if (!selectedFile) return;
+    hideAll(); showLoading();
+    const steps = ['Loading image into memory...','Running CNN spatial branch...','Running FFT frequency branch...','Reading EXIF metadata...','Fusing all signals...','Generating Grad-CAM heatmap...'];
+    const stepsEl = document.getElementById('loading-steps');
+    stepsEl.innerHTML = '';
+    document.getElementById('scan-line').style.display = 'block';
+    steps.forEach((s, i) => {
+      const el = document.createElement('div');
+      el.className = 'loading-step'; el.textContent = s;
+      el.style.animationDelay = `${i * 0.35}s`;
+      stepsEl.appendChild(el);
+    });
+    try {
+      const fd = new FormData();
+      fd.append('file', selectedFile);
+      const res = await fetch(`${API_BASE}/api/v1/analyze-image/gradcam`, { method:'POST', body:fd });
+      document.getElementById('scan-line').style.display = 'none';
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || `HTTP ${res.status}`); }
+      const data = await res.json();
+      hideAll();
+      renderResults(data);
+      renderGradCAM(data.gradcam, selectedFile);
+    } catch(err) {
+      document.getElementById('scan-line').style.display = 'none';
+      hideAll(); showError(err.message);
+    }
+  }
+
+  function renderResults(d) {
+    const prob = d.ai_probability, pct = Math.round(prob*100), risk = d.risk_level;
+    document.getElementById('result-timestamp').textContent = new Date().toLocaleTimeString('en-US',{hour12:false});
+    const C = 2*Math.PI*54, arc = 270, fill = document.getElementById('gauge-fill');
+    const da = (arc/360)*C;
+    fill.style.strokeDasharray = `${da} ${C}`;
+    setTimeout(() => { fill.style.strokeDashoffset = da*(1-prob); fill.style.stroke = rc(risk); }, 100);
+    setTimeout(() => animNum('gauge-pct', 0, pct, '%'), 200);
+    document.getElementById('verdict-main').textContent = prob >= 0.55 ? 'AI GENERATED' : 'LIKELY REAL';
+    document.getElementById('verdict-main').style.color = rc(risk);
+    document.getElementById('risk-badge-wrap').innerHTML = `<div class="risk-badge ${risk}">● ${risk} RISK</div>`;
+    document.getElementById('verdict-desc').textContent = {
+      LOW:    'Low probability of AI generation. Signals appear consistent with a real photograph.',
+      MEDIUM: 'Some anomalies detected. Suspicious signals but not conclusively AI-generated.',
+      HIGH:   'Strong indicators of AI generation. Multiple forensic signals point to synthetic origin.'
+    }[risk];
+    setScore('score-model', 'bar-model', d.model_score,    'var(--accent)');
+    setScore('score-meta',  'bar-meta',  d.metadata_score, 'var(--warn)');
+    setScore('score-fused', 'bar-fused', d.fused_score,    'var(--accent2)');
+    const ex = d.exif_analysis;
+    document.getElementById('exif-rows').innerHTML = [
+      {k:'HAS EXIF',     v:ex.has_exif?'YES':'NO',           c:ex.has_exif?'ok':'danger'},
+      {k:'CAMERA MAKE',  v:ex.camera_make||'NOT FOUND',       c:ex.camera_make?'ok':'warn'},
+      {k:'CAMERA MODEL', v:ex.camera_model||'NOT FOUND',      c:ex.camera_model?'ok':'warn'},
+      {k:'TIMESTAMP',    v:ex.timestamp||'NOT FOUND',         c:ex.timestamp?'ok':'warn'},
+      {k:'GPS DATA',     v:ex.gps_present?'YES':'NO',        c:ex.gps_present?'ok':''},
+      {k:'ANOMALY SCORE',v:(ex.exif_anomaly_score*100).toFixed(0)+'%', c:ex.exif_anomaly_score>0.4?'danger':'ok'},
+    ].map(r=>`<div class="signal-row"><span class="signal-key">${r.k}</span><span class="signal-val ${r.c}">${r.v}</span></div>`).join('');
+    document.getElementById('exif-flags').innerHTML = (ex.suspicious_flags||[]).map(f=>`<div class="flag-chip">${f}</div>`).join('');
+    const fr = d.frequency_features;
+    document.getElementById('freq-rows').innerHTML = [
+      {k:'FFT ANOMALY SCORE', v:(fr.fft_anomaly_score*100).toFixed(0)+'%',        c:fr.fft_anomaly_score>0.5?'danger':'ok'},
+      {k:'HIGH FREQ RATIO',   v:(fr.dominant_frequency_ratio*100).toFixed(1)+'%', c:''},
+      {k:'SPECTRAL FLATNESS', v:fr.spectral_flatness.toFixed(3),                  c:fr.spectral_flatness>0.6?'warn':'ok'},
+    ].map(r=>`<div class="signal-row"><span class="signal-key">${r.k}</span><span class="signal-val ${r.c}">${r.v}</span></div>`).join('');
+    document.getElementById('proc-time').textContent = d.processing_time_ms.toFixed(0)+' ms';
+    document.getElementById('model-ver').textContent = d.model_version||'1.0.0';
+    document.getElementById('footer-filename').textContent = d.filename;
+    document.getElementById('results').style.display = 'block';
+  }
+
+  function renderGradCAM(gradcam, originalFile) {
+    const section = document.getElementById('gradcam-section');
+    const loading = document.getElementById('gradcam-loading');
+    const content = document.getElementById('gradcam-content');
+    section.style.display = 'block';
+    if (!gradcam || !gradcam.success) {
+      loading.textContent = '⚠ Heatmap unavailable for this image';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = ev => { document.getElementById('gradcam-original').src = ev.target.result; };
+    reader.readAsDataURL(originalFile);
+    document.getElementById('gradcam-overlay').src = gradcam.overlay_base64;
+    document.getElementById('gradcam-explanation').textContent = gradcam.explanation;
+    loading.style.display = 'none';
+    content.style.display = 'block';
+  }
+
+  function setScore(id, barId, val, color) {
+    document.getElementById(id).textContent = (val*100).toFixed(1)+'%';
+    setTimeout(() => { const b = document.getElementById(barId); b.style.background=color; b.style.width=(val*100)+'%'; }, 300);
+  }
+  function animNum(id, from, to, sfx='') {
+    const el=document.getElementById(id), t0=performance.now();
+    (function step(now) {
+      const p=Math.min((now-t0)/1000,1), e=1-Math.pow(1-p,3);
+      el.textContent=Math.round(from+(to-from)*e)+sfx;
+      if(p<1) requestAnimationFrame(step);
+    })(t0);
+  }
+  function rc(risk) { return {LOW:'#2ea043',MEDIUM:'#d29922',HIGH:'#f85149'}[risk]||'#00ffe5'; }
+  function hideAll() { ['loading-state','results','error-state'].forEach(id=>document.getElementById(id).style.display='none'); }
+  function showLoading() { document.getElementById('loading-state').style.display='block'; }
+  function showError(msg) { document.getElementById('error-msg').textContent=msg; document.getElementById('error-state').style.display='block'; }
+  function resetUI() {
+    selectedFile=null; fileInput.value='';
+    document.getElementById('preview-container').style.display='none';
+    document.getElementById('gradcam-section').style.display='none';
+    document.getElementById('gradcam-loading').style.display='block';
+    document.getElementById('gradcam-content').style.display='none';
+    hideAll(); window.scrollTo({top:0,behavior:'smooth'});
+  }
+</script>
+</body>
+</html>

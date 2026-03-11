@@ -1,0 +1,9 @@
+{"timestamp": "2026-02-28T12:46:04.522045+00:00", "event": "image_analysis", "filename": "images.jpeg", "ai_probability": 0.1607, "risk_level": "LOW", "processing_time_ms": 222.32}
+{"timestamp": "2026-02-28T12:47:36.412195+00:00", "event": "image_analysis", "filename": "images.jpeg", "ai_probability": 0.1607, "risk_level": "LOW", "processing_time_ms": 52.63}
+{"timestamp": "2026-02-28T12:48:15.330172+00:00", "event": "image_analysis", "filename": "Udit_Faze_3.jpeg", "ai_probability": 0.1562, "risk_level": "LOW", "processing_time_ms": 199.72}
+{"timestamp": "2026-02-28T12:53:19.097118+00:00", "event": "image_analysis", "filename": "images (1).jpeg", "ai_probability": 0.2026, "risk_level": "LOW", "processing_time_ms": 65.07}
+{"timestamp": "2026-03-01T08:52:06.325246+00:00", "event": "image_analysis", "filename": "0001 (2).jpg", "ai_probability": 0.7432, "risk_level": "MEDIUM", "processing_time_ms": 92.62}
+{"timestamp": "2026-03-01T08:53:58.049489+00:00", "event": "image_analysis", "filename": "0 (7).jpg", "ai_probability": 0.1651, "risk_level": "LOW", "processing_time_ms": 68.04}
+{"timestamp": "2026-03-01T08:56:30.680833+00:00", "event": "image_analysis", "filename": "82302339-930e-4bb2-bc23-9763ff9056cf.png", "ai_probability": 0.1603, "risk_level": "LOW", "processing_time_ms": 232.99}
+{"timestamp": "2026-03-01T08:57:47.751499+00:00", "event": "image_analysis", "filename": "0004 (10).jpg", "ai_probability": 0.4253, "risk_level": "LOW", "processing_time_ms": 81.57}
+{"timestamp": "2026-03-01T08:58:58.336679+00:00", "event": "image_analysis", "filename": "Green-frog.webp", "ai_probability": 0.3798, "risk_level": "LOW", "processing_time_ms": 926.54}
